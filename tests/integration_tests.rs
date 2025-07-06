@@ -44,6 +44,36 @@ fn run_seqrush_writes_output() {
     fs::remove_file(&in_path).unwrap();
     fs::remove_file(&out_path).unwrap();
 }
+
+#[test]
+fn run_seqrush_gfa_content() {
+    let in_path = temp_file("gfa_in");
+    let mut f = File::create(&in_path).unwrap();
+    writeln!(f, ">a\nACGT\n>b\nTTAA").unwrap();
+    f.sync_all().unwrap();
+
+    let out_path = temp_file("gfa_out");
+    let args = Args {
+        sequences: in_path.to_str().unwrap().to_string(),
+        output: out_path.to_str().unwrap().to_string(),
+        threads: 1,
+        min_match_length: 1,
+    };
+
+    run_seqrush(args).unwrap();
+
+    let content = fs::read_to_string(&out_path).unwrap();
+    let lines: Vec<&str> = content.lines().collect();
+    let s_lines: Vec<&&str> = lines.iter().filter(|l| l.starts_with("S\t")).collect();
+    assert_eq!(s_lines.len(), 2);
+    assert!(lines.contains(&"S\ta\tACGT"));
+    assert!(lines.contains(&"S\tb\tTTAA"));
+    assert!(lines.contains(&"P\tp1\ta,b\t*"));
+    assert!(lines.contains(&"L\ta\t+\tb\t+\t0M"));
+
+    fs::remove_file(&in_path).unwrap();
+    fs::remove_file(&out_path).unwrap();
+}
 #[test]
 fn load_sequences_empty_input() {
     let path = temp_file("empty");
