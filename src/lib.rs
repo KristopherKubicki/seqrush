@@ -42,9 +42,12 @@ pub fn load_sequences(path: &str) -> io::Result<Vec<FastaSequence>> {
                     data: data.clone(),
                 });
                 data.clear();
+            } else {
+                // discard data before the first header
+                data.clear();
             }
             id = Some(line[1..].to_string());
-        } else {
+        } else if id.is_some() {
             data.extend(line.trim().as_bytes());
         }
     }
@@ -89,4 +92,3 @@ pub fn run_seqrush(args: Args) -> io::Result<()> {
 
     Ok(())
 }
-
