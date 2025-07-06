@@ -118,6 +118,24 @@ fn run_seqrush_missing_input() {
     }
 }
 
+#[test]
+fn run_seqrush_invalid_output_path() {
+    let mut fasta = temp_file();
+    writeln!(fasta, ">id\nACGT").unwrap();
+    fasta.as_file_mut().sync_all().unwrap();
+
+    let dir = tempfile::tempdir().unwrap();
+    let invalid_out = dir.path().join("missing").join("out.gfa");
+    let args = Args {
+        sequences: fasta.path().to_str().unwrap().to_string(),
+        output: invalid_out.to_str().unwrap().to_string(),
+        threads: 1,
+        min_match_length: 1,
+    };
+    let result = run_seqrush(args);
+    assert!(result.is_err());
+}
+
 use std::process::Command;
 
 #[cfg(feature = "cli")]
