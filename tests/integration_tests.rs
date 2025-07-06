@@ -96,6 +96,25 @@ fn load_sequences_large_input() {
 }
 
 #[test]
+fn load_sequences_data_before_header() {
+    let mut file = temp_file();
+    writeln!(file, "ACGT\n>id\nTTTT").unwrap();
+    file.as_file_mut().sync_all().unwrap();
+    let seqs = load_sequences(file.path().to_str().unwrap()).unwrap();
+    assert!(seqs.is_empty());
+}
+
+#[test]
+fn load_sequences_consecutive_headers() {
+    let mut file = temp_file();
+    writeln!(file, ">id1\n>id2\nACGT").unwrap();
+    file.as_file_mut().sync_all().unwrap();
+    let seqs = load_sequences(file.path().to_str().unwrap()).unwrap();
+    assert_eq!(seqs.len(), 2);
+    assert!(seqs[0].data.is_empty());
+}
+
+#[test]
 fn run_seqrush_missing_input() {
     let out_file = temp_file();
     let missing_path = {
