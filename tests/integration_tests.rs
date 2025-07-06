@@ -83,6 +83,7 @@ fn cli_no_arguments() {
     assert!(stderr.contains("input FASTA required"));
 }
 
+#[cfg(not(feature = "cli"))]
 #[test]
 fn cli_missing_output() {
     let exe = env!("CARGO_BIN_EXE_seqrush");
