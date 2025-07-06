@@ -2,7 +2,8 @@
 name = "seqrush"
 version = "0.3.0"
 edition = "2021"
-authors = ["Your Name <your.email@example.com>"]
+authors = ["Kristopher Kubicki <478212+KristopherKubicki@users.noreply.github.com>"]
+documentation = "https://docs.rs/seqrush"
 description = "Lock-free parallel pangenome graph construction"
 repository = "https://github.com/KristopherKubicki/seqrush"
 license = "MIT OR Apache-2.0"
