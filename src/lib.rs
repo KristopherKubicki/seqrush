@@ -2,6 +2,10 @@ pub mod seqrush {
     use std::fs::File;
     use std::io::{self, BufRead, Write};
 
+    /// Configuration options passed to [`run_seqrush`].
+    ///
+    /// `Args` collects paths to the input FASTA and output GFA files along
+    /// with optional parameters that may be used by future implementations.
     #[derive(Debug, Clone)]
     pub struct Args {
         /// Path to input FASTA file
@@ -14,6 +18,9 @@ pub mod seqrush {
         pub min_match_length: usize,
     }
 
+    /// In-memory representation of a FASTA record.
+    ///
+    /// Each sequence retains its identifier and the raw nucleotide bytes.
     #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct FastaSequence {
         pub id: String,
