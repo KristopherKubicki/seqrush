@@ -44,6 +44,29 @@ fn run_seqrush_writes_output() {
     fs::remove_file(&in_path).unwrap();
     fs::remove_file(&out_path).unwrap();
 }
+
+#[test]
+fn run_seqrush_single_sequence() {
+    let in_path = temp_file("single");
+    let mut f = File::create(&in_path).unwrap();
+    writeln!(f, ">id1\nACGT").unwrap();
+    f.sync_all().unwrap();
+    let out_path = temp_file("single_out");
+    let args = Args {
+        sequences: in_path.to_str().unwrap().to_string(),
+        output: out_path.to_str().unwrap().to_string(),
+        threads: 1,
+        min_match_length: 1,
+    };
+    run_seqrush(args).unwrap();
+    let content = fs::read_to_string(&out_path).unwrap();
+    assert!(content.lines().any(|l| l == "H\tVN:Z:1.0"));
+    assert!(content.lines().any(|l| l == "S\tid1\tACGT"));
+    assert!(content.lines().any(|l| l == "P\tp1\tid1\t*"));
+    assert!(!content.lines().any(|l| l.starts_with('L')));
+    fs::remove_file(&in_path).unwrap();
+    fs::remove_file(&out_path).unwrap();
+}
 #[test]
 fn load_sequences_empty_input() {
     let path = temp_file("empty");
@@ -70,6 +93,36 @@ fn run_seqrush_missing_input() {
     };
     let result = run_seqrush(args);
     assert!(result.is_err());
+}
+
+#[test]
+fn run_seqrush_multiple_sequences() {
+    let in_path = temp_file("multi");
+    let mut f = File::create(&in_path).unwrap();
+    writeln!(f, ">a\nAAA\n>b\nCCC\n>c\nGGG").unwrap();
+    f.sync_all().unwrap();
+    let out_path = temp_file("multi_out");
+    let args = Args {
+        sequences: in_path.to_str().unwrap().to_string(),
+        output: out_path.to_str().unwrap().to_string(),
+        threads: 1,
+        min_match_length: 1,
+    };
+    run_seqrush(args).unwrap();
+    let content = fs::read_to_string(&out_path).unwrap();
+    let path_line = content
+        .lines()
+        .find(|l| l.starts_with("P\t"))
+        .unwrap();
+    assert_eq!(path_line, "P\tp1\ta,b,c\t*");
+    let link_lines: Vec<&str> = content
+        .lines()
+        .filter(|l| l.starts_with("L\t"))
+        .collect();
+    assert_eq!(link_lines.len(), 1);
+    assert_eq!(link_lines[0], "L\ta\t+\tb\t+\t0M");
+    fs::remove_file(&in_path).unwrap();
+    fs::remove_file(&out_path).unwrap();
 }
 
 use std::process::Command;
