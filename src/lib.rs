@@ -52,20 +52,29 @@ pub mod seqrush {
         let sequences = load_sequences(&args.sequences)?;
         let mut file = File::create(&args.output)?;
         writeln!(file, "H\tVN:Z:1.0")?;
+        let mut next_node_id = 1usize;
+        let mut paths: Vec<(String, Vec<usize>)> = Vec::new();
+
         for seq in &sequences {
-            let seq_str = String::from_utf8_lossy(&seq.data);
-            writeln!(file, "S\t{}\t{}", seq.id, seq_str)?;
+            let mut path_nodes = Vec::new();
+            for base in &seq.data {
+                writeln!(file, "S\t{}\t{}", next_node_id, *base as char)?;
+                path_nodes.push(next_node_id);
+                next_node_id += 1;
+            }
+            paths.push((seq.id.clone(), path_nodes));
         }
-        if sequences.len() > 1 {
-            let path_line = sequences
+
+        for (path_id, nodes) in &paths {
+            let node_str = nodes
                 .iter()
-                .map(|s| s.id.clone())
+                .map(|n| format!("{}+", n))
                 .collect::<Vec<_>>()
                 .join(",");
-            writeln!(file, "P\tp1\t{}\t*", path_line)?;
-            writeln!(file, "L\t{}\t+\t{}\t+\t0M", sequences[0].id, sequences[1].id)?;
-        } else if let Some(seq) = sequences.get(0) {
-            writeln!(file, "P\tp1\t{}\t*", seq.id)?;
+            writeln!(file, "P\t{}\t{}\t*", path_id, node_str)?;
+            for pair in nodes.windows(2) {
+                writeln!(file, "L\t{}\t+\t{}\t+\t0M", pair[0], pair[1])?;
+            }
         }
         Ok(())
     }

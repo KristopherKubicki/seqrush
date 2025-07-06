@@ -1,7 +1,8 @@
-use seqrush::{Args, run_seqrush, load_sequences};
+use seqrush::{load_sequences, run_seqrush, Args};
 use std::fs::{self, File};
 use std::io::Write;
 use std::env::temp_dir;
+use std::collections::HashMap;
 
 fn temp_file(name: &str) -> std::path::PathBuf {
     let mut path = temp_dir();
@@ -11,6 +12,34 @@ fn temp_file(name: &str) -> std::path::PathBuf {
         .as_micros();
     path.push(format!("{}_{}", name, now));
     path
+}
+
+fn parse_gfa_sequences(content: &str) -> HashMap<String, String> {
+    let mut nodes: HashMap<String, String> = HashMap::new();
+    let mut paths: HashMap<String, String> = HashMap::new();
+    for line in content.lines() {
+        let mut parts = line.split('\t');
+        match parts.next() {
+            Some("S") => {
+                if let (Some(id), Some(b)) = (parts.next(), parts.next()) {
+                    nodes.insert(id.to_string(), b.to_string());
+                }
+            }
+            Some("P") => {
+                if let (Some(path_id), Some(node_list)) = (parts.next(), parts.next()) {
+                    let seq = node_list
+                        .split(',')
+                        .filter_map(|n| n.strip_suffix('+'))
+                        .filter_map(|n| nodes.get(n))
+                        .cloned()
+                        .collect::<String>();
+                    paths.insert(path_id.to_string(), seq);
+                }
+            }
+            _ => {}
+        }
+    }
+    paths
 }
 
 #[test]
@@ -41,6 +70,9 @@ fn run_seqrush_writes_output() {
     run_seqrush(args).unwrap();
     let content = fs::read_to_string(&out_path).unwrap();
     assert!(content.starts_with("H\tVN:Z:1.0"));
+    let parsed = parse_gfa_sequences(&content);
+    assert_eq!(parsed.get("x").unwrap(), "AAAA");
+    assert_eq!(parsed.get("y").unwrap(), "GGGG");
     fs::remove_file(&in_path).unwrap();
     fs::remove_file(&out_path).unwrap();
 }
@@ -70,6 +102,28 @@ fn run_seqrush_missing_input() {
     };
     let result = run_seqrush(args);
     assert!(result.is_err());
+}
+
+#[test]
+fn path_integrity_complex_indels() {
+    let in_path = temp_file("complex_in");
+    let mut f = File::create(&in_path).unwrap();
+    writeln!(f, ">s1\nACGTACGT\n>s2\nACGTTACGT").unwrap();
+    f.sync_all().unwrap();
+    let out_path = temp_file("complex_out");
+    let args = Args {
+        sequences: in_path.to_str().unwrap().to_string(),
+        output: out_path.to_str().unwrap().to_string(),
+        threads: 1,
+        min_match_length: 1,
+    };
+    run_seqrush(args).unwrap();
+    let content = fs::read_to_string(&out_path).unwrap();
+    let parsed = parse_gfa_sequences(&content);
+    assert_eq!(parsed.get("s1").unwrap(), "ACGTACGT");
+    assert_eq!(parsed.get("s2").unwrap(), "ACGTTACGT");
+    fs::remove_file(&in_path).unwrap();
+    fs::remove_file(&out_path).unwrap();
 }
 
 use std::process::Command;
