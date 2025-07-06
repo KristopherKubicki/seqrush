@@ -2,21 +2,33 @@ pub mod seqrush {
     use std::fs::File;
     use std::io::{self, BufRead, Write};
 
+    /// Parameters describing input and output files.
+    ///
+    /// These arguments are typically provided by the command line interface.
+    /// `sequences` is the path to the input FASTA file and `output` is the
+    /// destination of the produced GFA. `threads` and `min_match_length` are
+    /// accepted but currently unused.
     #[derive(Debug, Clone)]
     pub struct Args {
-        /// Path to input FASTA file
+        /// Path to input FASTA file.
         pub sequences: String,
-        /// Path to output GFA file
+        /// Path to output GFA file.
         pub output: String,
-        /// Number of worker threads (unused in this stub)
+        /// Number of worker threads (unused in this stub).
         pub threads: usize,
-        /// Minimum match length (unused)
+        /// Minimum match length (unused).
         pub min_match_length: usize,
     }
 
+    /// A single record parsed from a FASTA file.
+    ///
+    /// `id` stores the sequence identifier without the leading '`>`' and
+    /// `data` contains the sequence bytes concatenated across lines.
     #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct FastaSequence {
+        /// Sequence identifier.
         pub id: String,
+        /// Raw nucleotide bytes.
         pub data: Vec<u8>,
     }
 
