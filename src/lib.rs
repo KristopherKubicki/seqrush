@@ -20,6 +20,14 @@ pub mod seqrush {
         pub data: Vec<u8>,
     }
 
+    /// Load all sequences from a FASTA file.
+    ///
+    /// # Parameters
+    /// - `path`: Path to the FASTA file on disk.
+    ///
+    /// # Returns
+    /// A vector of [`FastaSequence`] on success or an [`io::Error`] when the
+    /// file cannot be read.
     pub fn load_sequences(path: &str) -> io::Result<Vec<FastaSequence>> {
         let contents = fs::read_to_string(path)?;
         let mut sequences = Vec::new();
@@ -48,6 +56,14 @@ pub mod seqrush {
         Ok(sequences)
     }
 
+    /// Write a simple GFA file from the provided arguments.
+    ///
+    /// # Parameters
+    /// - `args`: Configuration detailing input and output paths.
+    ///
+    /// # Returns
+    /// Returns `Ok(())` when output generation succeeds or an
+    /// [`io::Error`] if any file operation fails.
     pub fn run_seqrush(args: Args) -> io::Result<()> {
         let sequences = load_sequences(&args.sequences)?;
         let mut file = File::create(&args.output)?;
