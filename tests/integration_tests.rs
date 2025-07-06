@@ -119,3 +119,26 @@ fn cli_parses_flags() {
         .unwrap();
     assert!(status.success());
 }
+
+#[test]
+fn run_seqrush_empty_fasta() {
+    let in_path = temp_file("empty_in");
+    File::create(&in_path).unwrap();
+    let out_path = temp_file("empty_out");
+    let args = Args {
+        sequences: in_path.to_str().unwrap().to_string(),
+        output: out_path.to_str().unwrap().to_string(),
+        threads: 1,
+        min_match_length: 1,
+    };
+    run_seqrush(args).unwrap();
+    let content = fs::read_to_string(&out_path).unwrap();
+    let mut lines = content.lines();
+    assert_eq!(lines.next(), Some("H\tVN:Z:1.0"));
+    assert!(lines.next().is_none());
+    assert!(!content.contains("\tS"));
+    assert!(!content.contains("\tP"));
+    assert!(!content.contains("\tL"));
+    fs::remove_file(&in_path).unwrap();
+    fs::remove_file(&out_path).unwrap();
+}
