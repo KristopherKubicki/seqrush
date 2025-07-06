@@ -1,7 +1,7 @@
 use seqrush::seqrush::{Args, run_seqrush};
 
 #[cfg(feature = "cli")]
-mod cli;
+use seqrush::cli;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(feature = "cli")]

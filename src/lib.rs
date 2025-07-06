@@ -73,3 +73,6 @@ pub mod seqrush {
 
 pub use seqrush::{load_sequences, run_seqrush, Args, FastaSequence};
 
+#[cfg(feature = "cli")]
+pub mod cli;
+

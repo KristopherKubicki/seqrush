@@ -1,5 +1,28 @@
 #[cfg(feature = "cli")]
-use seqrush::Args;
+use crate::seqrush::Args;
+
+#[cfg(feature = "cli")]
+static mut ARGS_OVERRIDE: Option<Vec<String>> = None;
+
+#[cfg(feature = "cli")]
+/// Set command line arguments for testing.
+pub fn set_args_override<I, S>(args: I)
+where
+    I: IntoIterator<Item = S>,
+    S: Into<String>,
+{
+    unsafe {
+        ARGS_OVERRIDE = Some(args.into_iter().map(|s| s.into()).collect());
+    }
+}
+
+#[cfg(feature = "cli")]
+/// Clear any argument override for testing.
+pub fn clear_args_override() {
+    unsafe {
+        ARGS_OVERRIDE = None;
+    }
+}
 
 #[cfg(feature = "cli")]
 /// Parse command line arguments into `Args`.
@@ -8,8 +31,10 @@ pub fn parse() -> Args {
     let mut output = None;
     let mut threads = 1_usize;
     let mut min_match_length = 15_usize;
-
-    let mut iter = std::env::args().skip(1);
+    let args: Vec<String> = unsafe {
+        ARGS_OVERRIDE.clone().unwrap_or_else(|| std::env::args().collect())
+    };
+    let mut iter = args.into_iter().skip(1);
     while let Some(arg) = iter.next() {
         match arg.as_str() {
             "-s" | "--sequences" => sequences = iter.next(),
