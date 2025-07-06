@@ -189,3 +189,20 @@ fn run_seqrush_single_sequence_no_links() {
     assert_eq!(p_lines[0], &"P\tp1\tid+\t*");
     assert!(lines.iter().all(|l| !l.starts_with("L\t")));
 }
+
+#[test]
+fn run_seqrush_empty_fasta_header_only() {
+    let fasta_file = temp_file();
+    let gfa_file = temp_file();
+    let args = Args {
+        sequences: fasta_file.path().to_str().unwrap().to_string(),
+        output: gfa_file.path().to_str().unwrap().to_string(),
+        threads: 1,
+        min_match_length: 1,
+    };
+    run_seqrush(args).unwrap();
+
+    let content = fs::read_to_string(gfa_file.path()).unwrap();
+    let lines: Vec<&str> = content.lines().collect();
+    assert_eq!(lines, ["H\tVN:Z:1.0"]);
+}
