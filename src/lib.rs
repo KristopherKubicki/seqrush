@@ -63,7 +63,11 @@ pub mod seqrush {
                 .collect::<Vec<_>>()
                 .join(",");
             writeln!(file, "P\tp1\t{}\t*", path_line)?;
-            writeln!(file, "L\t{}\t+\t{}\t+\t0M", sequences[0].id, sequences[1].id)?;
+            for pair in sequences.windows(2) {
+                let a = &pair[0];
+                let b = &pair[1];
+                writeln!(file, "L\t{}\t+\t{}\t+\t0M", a.id, b.id)?;
+            }
         } else if let Some(seq) = sequences.get(0) {
             writeln!(file, "P\tp1\t{}\t*", seq.id)?;
         }
