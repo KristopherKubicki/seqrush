@@ -77,11 +77,15 @@ pub mod seqrush {
             return Ok(());
         }
 
-        let path_line = sequences
-            .iter()
-            .map(|s| format!("{}+", s.id))
-            .collect::<Vec<_>>()
-            .join(",");
+        let path_line = if sequences.len() == 1 {
+            sequences[0].id.clone()
+        } else {
+            sequences
+                .iter()
+                .map(|s| format!("{}+", s.id))
+                .collect::<Vec<_>>()
+                .join(",")
+        };
         writeln!(file, "P\tp1\t{}\t*", path_line)?;
 
         for window in sequences.windows(2) {
