@@ -163,6 +163,29 @@ fn cli_parses_flags() {
     assert!(status.success());
 }
 
+#[cfg(feature = "cli")]
+#[test]
+fn cli_negative_values_error() {
+    let mut in_file = temp_file();
+    writeln!(in_file, ">z\nAAAA").unwrap();
+    in_file.as_file_mut().sync_all().unwrap();
+    let out_file = temp_file();
+    let output = Command::new(env!("CARGO_BIN_EXE_seqrush"))
+        .args([
+            "-s",
+            in_file.path().to_str().unwrap(),
+            "-o",
+            out_file.path().to_str().unwrap(),
+            "-t",
+            "-1",
+        ])
+        .output()
+        .unwrap();
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("invalid"));
+}
+
 #[test]
 fn run_seqrush_single_sequence_no_links() {
     let mut fasta_file = temp_file();
