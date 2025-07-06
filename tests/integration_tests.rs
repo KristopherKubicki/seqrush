@@ -119,3 +119,32 @@ fn cli_parses_flags() {
         .unwrap();
     assert!(status.success());
 }
+
+#[cfg(feature = "cli")]
+#[test]
+fn cli_handles_invalid_numeric_flags() {
+    use std::process::Command;
+    let in_path = temp_file("cli_bad_num_in");
+    let mut f = File::create(&in_path).unwrap();
+    writeln!(f, ">n\nACGT").unwrap();
+    f.sync_all().unwrap();
+    let out_path = temp_file("cli_bad_num_out");
+    let status = Command::new(env!("CARGO_BIN_EXE_seqrush"))
+        .args([
+            "-s",
+            in_path.to_str().unwrap(),
+            "-o",
+            out_path.to_str().unwrap(),
+            "-t",
+            "threads",
+            "-k",
+            "length",
+        ])
+        .status()
+        .unwrap();
+    assert!(status.success());
+    let content = fs::read_to_string(&out_path).unwrap();
+    assert!(content.contains("S\tn\tACGT"));
+    fs::remove_file(&in_path).unwrap();
+    fs::remove_file(&out_path).unwrap();
+}
