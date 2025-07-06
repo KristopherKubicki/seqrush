@@ -20,6 +20,9 @@ pub mod seqrush {
         pub data: Vec<u8>,
     }
 
+    /// Read all sequences from a FASTA file.
+    ///
+    /// Returns a vector of parsed records or an I/O error.
     pub fn load_sequences(path: &str) -> io::Result<Vec<FastaSequence>> {
         let contents = fs::read_to_string(path)?;
         let mut sequences = Vec::new();
@@ -48,6 +51,9 @@ pub mod seqrush {
         Ok(sequences)
     }
 
+    /// Write a minimal GFA from the provided arguments.
+    ///
+    /// Reads the input FASTA and writes `output`.
     pub fn run_seqrush(args: Args) -> io::Result<()> {
         let sequences = load_sequences(&args.sequences)?;
         let mut file = File::create(&args.output)?;
