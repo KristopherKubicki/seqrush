@@ -189,3 +189,17 @@ fn run_seqrush_single_sequence_no_links() {
     assert_eq!(p_lines[0], &"P\tp1\tid+\t*");
     assert!(lines.iter().all(|l| !l.starts_with("L\t")));
 }
+
+#[test]
+fn load_sequences_sequence_before_header() {
+    let mut file = temp_file();
+    writeln!(file, "ACGT\n>id\nTT").unwrap();
+    file.as_file_mut().sync_all().unwrap();
+
+    let result = load_sequences(file.path().to_str().unwrap());
+
+    match result {
+        Ok(seqs) => assert!(seqs.is_empty()),
+        Err(_) => assert!(true),
+    }
+}

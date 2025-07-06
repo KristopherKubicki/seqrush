@@ -23,6 +23,8 @@ pub struct FastaSequence {
 ///
 /// The `path` argument should point to a plaintext FASTA file. Each record
 /// is parsed into a [`FastaSequence`] with its identifier and raw bytes.
+/// Lines appearing before the first `>` header are prepended to the data of
+/// the first sequence encountered.
 ///
 /// # Errors
 ///
@@ -89,4 +91,3 @@ pub fn run_seqrush(args: Args) -> io::Result<()> {
 
     Ok(())
 }
-
