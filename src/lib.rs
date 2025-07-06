@@ -14,9 +14,14 @@ pub mod seqrush {
         pub min_match_length: usize,
     }
 
+    /// Sequence record parsed from a FASTA file.
+    ///
+    /// Contains the identifier and raw sequence bytes for a single entry.
     #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct FastaSequence {
+        /// Identifier without the leading `>` character
         pub id: String,
+        /// Raw nucleotide or amino acid data
         pub data: Vec<u8>,
     }
 
