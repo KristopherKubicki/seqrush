@@ -40,9 +40,8 @@ pub mod seqrush {
                 if let Some(id_val) = id.take() {
                     sequences.push(FastaSequence {
                         id: id_val,
-                        data: data.clone(),
+                        data: std::mem::take(&mut data),
                     });
-                    data.clear();
                 }
                 id = Some(line[1..].to_string());
             } else {
